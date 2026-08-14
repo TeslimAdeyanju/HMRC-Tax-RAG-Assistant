@@ -1,0 +1,14 @@
+[project]
+name = "uk-tax-rag-assistant"
+version = "0.1.0"
+description = "A retrieval-augmented Q&A agent over HMRC internal tax manuals"
+requires-python = ">=3.11"
+dependencies = [
+    "jupyter>=1.1.1",
+    "minsearch>=0.2.0",
+    "openai>=2.44.0",
+    "pandas>=2.2.0",
+    "python-dotenv>=1.2.2",
+    "requests>=2.34.2",
+    "sqlitesearch>=0.3.0",
+]

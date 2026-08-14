@@ -1,0 +1,20 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.ipynb_checkpoints/
+.pytest_cache/
+
+# Local search index (rebuild from data/docs.json via notebooks/02)
+*.db
+*.db-shm
+*.db-wal
+
+# Virtual environments
+.venv
+
+# Local environment secrets
+.env
