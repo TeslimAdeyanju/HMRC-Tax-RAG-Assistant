@@ -518,6 +518,31 @@ wheels = [
 ]
 
 [[package]]
+name = "hmrc-tax-rag-assistant"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "jupyter" },
+    { name = "minsearch" },
+    { name = "openai" },
+    { name = "pandas" },
+    { name = "python-dotenv" },
+    { name = "requests" },
+    { name = "sqlitesearch" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "jupyter", specifier = ">=1.1.1" },
+    { name = "minsearch", specifier = ">=0.2.0" },
+    { name = "openai", specifier = ">=2.44.0" },
+    { name = "pandas", specifier = ">=2.2.0" },
+    { name = "python-dotenv", specifier = ">=1.2.2" },
+    { name = "requests", specifier = ">=2.34.2" },
+    { name = "sqlitesearch", specifier = ">=0.3.0" },
+]
+
+[[package]]
 name = "httpcore"
 version = "1.0.9"
 source = { registry = "https://pypi.org/simple" }
@@ -2566,31 +2591,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/92/ff/5a28bdfd8c3ebec42564ac7d0e54ca3db65044a9314a97f9564fa7a1e926/tzdata-2026.3.tar.gz", hash = "sha256:4a1518b8993086a7982523e071643f3c0e5f213e75b21318e78bcabfff9d1415", size = 198674, upload-time = "2026-07-10T08:50:37.887Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e5/6d/b53b99a9f2766d095985947a5782f1702cabb129a34f7a802d7197af832f/tzdata-2026.3-py2.py3-none-any.whl", hash = "sha256:dc096730c87af6cab1b171c9d532be840741ff5d459015e7f6947bd7d7e54931", size = 348168, upload-time = "2026-07-10T08:50:36.46Z" },
-]
-
-[[package]]
-name = "uk-tax-rag-assistant"
-version = "0.1.0"
-source = { virtual = "." }
-dependencies = [
-    { name = "jupyter" },
-    { name = "minsearch" },
-    { name = "openai" },
-    { name = "pandas" },
-    { name = "python-dotenv" },
-    { name = "requests" },
-    { name = "sqlitesearch" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "jupyter", specifier = ">=1.1.1" },
-    { name = "minsearch", specifier = ">=0.2.0" },
-    { name = "openai", specifier = ">=2.44.0" },
-    { name = "pandas", specifier = ">=2.2.0" },
-    { name = "python-dotenv", specifier = ">=1.2.2" },
-    { name = "requests", specifier = ">=2.34.2" },
-    { name = "sqlitesearch", specifier = ">=0.3.0" },
 ]
 
 [[package]]

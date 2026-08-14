@@ -1,5 +1,5 @@
 [project]
-name = "uk-tax-rag-assistant"
+name = "hmrc-tax-rag-assistant"
 version = "0.1.0"
 description = "A retrieval-augmented Q&A agent over HMRC internal tax manuals"
 requires-python = ">=3.11"

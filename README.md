@@ -1,4 +1,4 @@
-# UK Tax RAG Assistant
+# HMRC Tax RAG Assistant
 
 A retrieval-augmented Q&A agent that answers UK tax questions using HMRC's own
 internal manuals as its knowledge base, instead of relying on an LLM's
