@@ -1,101 +1,152 @@
 # HMRC Tax RAG Assistant
 
-A retrieval-augmented Q&A agent that answers UK tax questions using HMRC's own
-internal manuals as its knowledge base, instead of relying on an LLM's
-built-in (and often outdated or wrong) knowledge of tax law.
+> A source-grounded retrieval-augmented generation (RAG) prototype for answering questions from publicly available HMRC tax manuals, combining keyword retrieval with an LLM.
 
-Built by [Teslim Adeyanju, ACA](https://adeyanjuteslim.co.uk) as a way to combine
-professional accounting knowledge with hands-on LLM/RAG engineering.
+**Status:** Implemented retrieval and response-generation workflow with a prepared manual corpus. Formal retrieval/answer evaluation and user-visible citations remain to be developed.  
+**Tools:** Python, OpenAI API, minsearch, SQLite search experiments, GOV.UK APIs, uv and Jupyter.
 
-## Why this exists
+## Executive Summary
 
-Tax rules are precise, change often, and are a poor fit for an LLM to
-answer from memory. This project grounds every answer in the actual text of
-HMRC's internal manuals, retrieved at query time, so answers are traceable
-back to a real source page on GOV.UK rather than invented.
+Tax guidance is complex and changes over time. A general language model may produce plausible but unsupported answers, especially when asked about detailed legislation or HMRC operational guidance. This project investigates a retrieval-augmented workflow that first finds relevant passages in published HMRC manuals and then prompts a model to respond using the retrieved context.
 
-## How it works
+The result is a technical research prototype, **not a validated tax advisory service**. Retrieved source text improves traceability but does not guarantee factual or legal correctness.
 
-1. **Scrape** — `src/scrape_manuals.py` pulls every section of five HMRC
-   internal manuals from the public GOV.UK Content and Search APIs (no auth
-   required) and writes them to `data/docs.json`.
-2. **Index** — the sections are indexed for keyword search, either in-memory
-   with [`minsearch`](https://github.com/alexeygrigorev/minsearch) or
-   persisted to SQLite with [`sqlitesearch`](https://github.com/alexeygrigorev/sqlitesearch).
-3. **Retrieve + generate** — `src/tax_knowledge_agent.py` defines
-   `TaxKnowledgeAgent`, which searches the index for the most relevant
-   sections, builds a grounded prompt from them, and asks an LLM to answer
-   using only that context (or say "I don't know").
+## Problem and Objectives
 
-```
-question ─▶ search index ─▶ top-k HMRC manual sections ─▶ prompt ─▶ LLM ─▶ answer
-```
+1. Collect structured sections from selected public HMRC manuals.
+2. Create searchable indexes containing titles, passages and source URLs.
+3. Retrieve relevant passages for a question.
+4. Build a grounded prompt and generate an answer from those passages.
+5. Evaluate retrieval relevance, response correctness and abstention on unsupported questions.
+6. Expose clear, checkable citations in a future user-facing interface.
 
-## Data
+## Data Sources
 
-`data/docs.json` contains 1,299 sections scraped from five HMRC internal
-manuals:
+The repository includes `data/docs.json`, a stored extract of **1,299 sections** from five HMRC manuals, as documented in the original project.
 
-| Manual | Topic |
-|---|---|
+| Manual | Subject |
+| --- | --- |
 | `company-taxation-manual` | Corporation tax |
 | `vat-registration-manual` | VAT registration |
 | `paye-manual` | PAYE |
 | `capital-gains-manual` | Capital gains tax |
 | `capital-allowances-manual` | Capital allowances |
 
-Each record: `{"id", "manual", "title", "text", "url"}`, where `url` links
-back to the original GOV.UK page.
+Records contain a manual identifier, section ID, title, text and original GOV.UK URL. Tax documentation is subject to updates and the local dataset is a snapshot, not a live guarantee of current guidance.
 
-## Project layout
+## Architecture
 
-```
-.
-├── data/
-│   └── docs.json                      # scraped HMRC manual sections
-├── src/
-│   ├── scrape_manuals.py              # GOV.UK API -> data/docs.json
-│   ├── load_index.py                  # load docs.json, build a minsearch Index
-│   └── tax_knowledge_agent.py         # TaxKnowledgeAgent: search -> prompt -> answer
-├── notebooks/
-│   ├── 01_prototype_minsearch_rag.ipynb   # first pass: in-memory index + RAG loop
-│   └── 02_sqlite_index_and_agent.ipynb    # persisted index + TaxKnowledgeAgent class
-└── pyproject.toml
+```mermaid
+flowchart LR
+ A[Public HMRC manuals] --> B[Fetch and structure sections]
+ B --> C[JSON document corpus]
+ C --> D[Keyword search index]
+ E[User tax question] --> D
+ D --> F[Relevant manual passages]
+ F --> G[Grounded prompt]
+ G --> H[OpenAI response]
 ```
 
-## Setup
+## Technical Implementation
+
+### 1. Retrieval corpus
+
+`src/scrape_manuals.py` collects manual content and writes structured documents. `src/load_index.py` loads the stored JSON file and constructs an in-memory `minsearch` index using section titles and text, with the manual type as a filterable field.
+
+### 2. Grounded responses
+
+`src/tax_knowledge_agent.py` defines `TaxKnowledgeAgent`. Its `search()` method retrieves matching sections, `build_context()` assembles passages and source URLs, and `rag()` passes the assembled context to the configured OpenAI client.
+
+**Current scope restriction:** The agent defaults to `manual="company-taxation-manual"`. Although five manuals are stored, the default agent searches only the corporation tax manual unless its configuration is changed.
+
+### 3. Source traceability
+
+Retrieved document URLs are included in the **prompt context**. The code currently returns the model's answer text directly; it does not implement a separately validated output citation system. Claims that every answer visibly cites a source or is automatically correct would therefore be premature.
+
+### 4. Notebook experiments
+
+The two research notebooks cover an in-memory keyword-search RAG prototype and further exploration of persistent SQLite-based search. Do not treat the notebook experiments as proof of a hardened deployed service.
+
+## Repository Structure
+
+```text
+data/
+    docs.json
+src/
+    scrape_manuals.py
+    load_index.py
+    tax_knowledge_agent.py
+notebooks/
+    01_prototype_minsearch_rag.ipynb
+    02_sqlite_index_and_agent.ipynb
+.env.example
+pyproject.toml
+uv.lock
+README.md
+docs/
+    readme-history.md
+```
+
+## Installation and Local Example
+
+Python 3.11 or newer is required by the project manifest.
 
 ```bash
+git clone https://github.com/TeslimAdeyanju/HMRC-Tax-RAG-Assistant.git
+cd HMRC-Tax-RAG-Assistant
 uv sync
-cp .env.example .env   # add your OPENAI_API_KEY
+cp .env.example .env
 ```
 
-## Usage
+Add an authorised `OPENAI_API_KEY` to `.env`. The following example imports the modules from the repository's `src` directory:
 
-```python
+```bash
+uv run python - <<'PY'
+import sys
+sys.path.insert(0, "src")
+from openai import OpenAI
 from load_index import load_faq_data, build_index
 from tax_knowledge_agent import TaxKnowledgeAgent
-from openai import OpenAI
 
-documents = load_faq_data()
-index = build_index(documents)
-
+docs = load_faq_data()
+index = build_index(docs)
 agent = TaxKnowledgeAgent(index=index, llm_client=OpenAI())
-answer = agent.rag("What counts as capital expenditure for capital allowances purposes?")
-print(answer)
+print(agent.rag("What is a corporation tax accounting period?"))
+PY
 ```
 
-Or open `notebooks/02_sqlite_index_and_agent.ipynb` for a persisted,
-SQLite-backed version of the same flow.
+The commands are illustrative and have not been executed independently during this documentation review. API use may incur charges. The default model name and access requirements should be verified in the user's environment.
 
-## Roadmap
+## Evaluation and Responsible Use
 
-- [ ] Hybrid keyword + vector search
-- [ ] Evaluation set of tax questions with expected source sections
-- [ ] Answer citations (surface the source `url` alongside the answer)
-- [ ] Simple chat UI
+Before deploying or using the assistant for financial decisions, establish an evaluation set that covers manual identification, retrieval relevance, citation accuracy, answer correctness, refusal when evidence is missing, and changing regulations. Test across different tax years and ambiguous questions.
 
-## Credits
+**Limitations:**
 
-Started as part of the DataTalks.Club LLM Zoomcamp; this repo is the
-standalone, ongoing continuation of that work.
+- HMRC manuals are published guidance and may not replace primary legislation or professional interpretation.
+- The stored corpus can become outdated.
+- The current keyword retrieval may miss semantically related sections.
+- Retrieved passages are not guaranteed to be sufficient or current.
+- User-visible citations are not yet validated.
+- The default manual filter restricts topics.
+- Generated answers can still contain hallucinations or omit qualifications.
+
+The assistant is a learning and research prototype, not professional tax advice. Check tax decisions against current official guidance and, where needed, qualified professional advice.
+
+## Development Roadmap
+
+1. Build a labelled tax-question retrieval benchmark and record results.
+2. Implement hybrid keyword and vector retrieval where demonstrably beneficial.
+3. Add citations with direct GOV.UK page links and verify they support each claim.
+4. Support deliberate multi-manual retrieval.
+5. Improve abstention, ambiguity handling and temporal validity checks.
+6. Add automated tests, a user interface and observable deployment controls.
+
+## Author and Credits
+
+**Teslim Adeyanju**  
+[Portfolio](https://adeyanjuteslim.co.uk) | [LinkedIn](https://www.linkedin.com/in/adeyanjuteslimuthman)
+
+Developed as an ongoing project extending DataTalks.Club LLM Zoomcamp work.
+
+[Prior README](docs/readme-history.md)
