@@ -84,7 +84,7 @@ pyproject.toml
 uv.lock
 README.md
 docs/
-    readme-history.md
+    readme_history.md
 ```
 
 ## Installation and Local Example
@@ -149,4 +149,4 @@ The assistant is a learning and research prototype, not professional tax advice.
 
 Developed as an ongoing project extending DataTalks.Club LLM Zoomcamp work.
 
-[Prior README](docs/readme-history.md)
+[Prior README](docs/readme_history.md)
